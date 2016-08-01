@@ -60,8 +60,12 @@ int main(int argc, char *argv[])
   }
 
   QString inputFile = args.at(0);
+  uint32_t delay = 0;
+  if (parser.value(delayOption) != QString("")) {
+    delay = parser.value(delayOption).toUInt();
+  }
 
-  MainWindow w(inputFile.toLatin1().data());
+  MainWindow w(inputFile.toLatin1().data(), delay);
   w.show();
   
   return a.exec();

@@ -53,10 +53,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-MainWindow::MainWindow(const char * inputFile, QWidget *parent) :
+MainWindow::MainWindow(const char * inputFile, uint32_t delayMilliSeconds, QWidget * parent) :
   QMainWindow(parent),
   ui(new Ui::MainWindow),
   m_inputFile(inputFile),
+  m_delayMilliSeconds(delayMilliSeconds),
   m_buffer(10)
 {
   ui->setupUi(this);
@@ -99,6 +100,14 @@ void MainWindow::addNextScan()
   }
 
   bool expandOnly = this->m_nextScanIndex % 100 != 0;
+#if 0
+  if (ui->customPlot->yAxis->range().center() > 10.0) {
+    ui->customPlot->yAxis->scaleRange(1.1, ui->customPlot->yAxis->range().center());
+  }
+  if (ui->customPlot->xAxis->range().center() > 300e6) {
+    ui->customPlot->xAxis->scaleRange(1.1, ui->customPlot->xAxis->range().center());
+  }
+#endif
   ui->customPlot->graph()->rescaleAxes(expandOnly);
   ui->customPlot->replot();
   double milliSeconds = QDateTime::currentDateTime().toMSecsSinceEpoch();
@@ -142,8 +151,8 @@ void MainWindow::setupSpectrumDemo(QCustomPlot *customPlot)
   this->m_scanCount = 0;
   this->addNextScan();
   // zoom out a bit:
-  ui->customPlot->yAxis->scaleRange(1.1, ui->customPlot->yAxis->range().center());
-  ui->customPlot->xAxis->scaleRange(1.1, ui->customPlot->xAxis->range().center());
+  // ui->customPlot->yAxis->scaleRange(1.1, ui->customPlot->yAxis->range().center());
+  // ui->customPlot->xAxis->scaleRange(1.1, ui->customPlot->xAxis->range().center());
   // set blank axis lines:
   customPlot->xAxis->setTicks(true);
   customPlot->yAxis->setTicks(true);
@@ -154,7 +163,7 @@ void MainWindow::setupSpectrumDemo(QCustomPlot *customPlot)
 
   // setup a timer that repeatedly calls MainWindow::realtimeDataSlot:
   connect(&dataTimer, SIGNAL(timeout()), this, SLOT(addNextScan()));
-  dataTimer.start(0); // Interval 0 means to refresh as fast as possible
+  dataTimer.start(this->m_delayMilliSeconds); // Interval 0 means to refresh as fast as possible
 }
 
 void MainWindow::setupPlayground(QCustomPlot *customPlot)

@@ -57,7 +57,7 @@ class MainWindow : public QMainWindow
   Q_OBJECT
   
 public:
-  explicit MainWindow(const char * inputFile, QWidget *parent = 0);
+  explicit MainWindow(const char * inputFile, uint32_t delayMilliSeconds, QWidget *parent = 0);
   ~MainWindow();
 
   void setupDemo();
@@ -73,6 +73,7 @@ private:
   QTimer dataTimer;
   QCPItemTracer *itemDemoPhaseTracer;
   const char * m_inputFile;
+  uint32_t m_delayMilliSeconds;
   CircularBuffer m_buffer;
   DataReader * m_dataReader;
   uint32_t m_nextScanIndex;
