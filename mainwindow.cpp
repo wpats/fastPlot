@@ -46,9 +46,7 @@
 #include <QScreen>
 #include <QMessageBox>
 #include <QMetaEnum>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+#include <limits>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -85,7 +83,8 @@ void MainWindow::addNextScan()
     dataTimer.stop();
     double milliSeconds = QDateTime::currentDateTime().toMSecsSinceEpoch();
     ui->statusBar->showMessage(
-          QString("Done: %1 scans/sec, Total scans: %2")
+          QString("Done: %1 --> %2 scans/sec, Total scans: %3")
+          .arg(QString(this->m_timeBuffer))
           .arg(this->m_scanCount*1000/(milliSeconds - this->m_startMilliSeconds), 0, 'f', 0)
           .arg(this->m_nextScanIndex)
           , 0);
@@ -93,28 +92,41 @@ void MainWindow::addNextScan()
   }
 
   ui->customPlot->graph()->clearData();
+  double lowerFrequency = std::numeric_limits<double>::max();
+  double upperFrequency = std::numeric_limits<double>::min();
+  double lowerPower = std::numeric_limits<double>::max();
+  double upperPower = std::numeric_limits<double>::min();
+  int alpha = 27;
   for (CircularBuffer::BufferType * buffer : this->m_buffer.getBuffers()) {
     for (uint32_t i = 0; i < buffer->size(); i++) {
+#if 0
+      QPen pen;
+      pen.setColor(QColor(0, 200, 0, alpha));
+      ui->customPlot->graph()->setPen(pen);
+#endif
       ui->customPlot->graph()->addData((*buffer)[i].first, (*buffer)[i].second);
+      lowerFrequency = std::min<double>(lowerFrequency, (*buffer)[i].first);
+      upperFrequency = std::max<double>(upperFrequency, (*buffer)[i].first);
+      lowerPower = std::min<double>(lowerPower, (*buffer)[i].second);
+      upperPower = std::max<double>(upperPower, (*buffer)[i].second);
     }
+    alpha += 23;
   }
 
+  ui->customPlot->xAxis->setRange(lowerFrequency - 50e6, upperFrequency + 50e6);
+  ui->customPlot->yAxis->setRange(lowerPower - 0.1, upperPower + 0.3);
   bool expandOnly = this->m_nextScanIndex % 100 != 0;
-#if 0
-  if (ui->customPlot->yAxis->range().center() > 10.0) {
-    ui->customPlot->yAxis->scaleRange(1.1, ui->customPlot->yAxis->range().center());
-  }
-  if (ui->customPlot->xAxis->range().center() > 300e6) {
-    ui->customPlot->xAxis->scaleRange(1.1, ui->customPlot->xAxis->range().center());
-  }
-#endif
   ui->customPlot->graph()->rescaleAxes(expandOnly);
   ui->customPlot->replot();
   double milliSeconds = QDateTime::currentDateTime().toMSecsSinceEpoch();
   this->m_scanCount++;
   if (milliSeconds - this->m_startMilliSeconds > 1000) {
+    DataReader::TimeToString(inBuffer->m_time, 
+                             this->m_timeBuffer, 
+                             std::extent<decltype(this->m_timeBuffer)>::value);
     ui->statusBar->showMessage(
-          QString("%1 scans/sec, Total scans: %2")
+          QString("%1 --> %2 scans/sec, Total scans: %3")
+          .arg(QString(this->m_timeBuffer))
           .arg(this->m_scanCount*1000/(milliSeconds - this->m_startMilliSeconds), 0, 'f', 0)
           .arg(this->m_nextScanIndex)
           , 0);

@@ -79,6 +79,7 @@ private:
   uint32_t m_nextScanIndex;
   double m_startMilliSeconds;
   uint32_t m_scanCount;
+  char m_timeBuffer[128];
 };
 
 #endif // MAINWINDOW_H

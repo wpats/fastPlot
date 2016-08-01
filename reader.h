@@ -50,6 +50,7 @@ class DataReader
   bool SeekTo(uint32_t offset) {
     return !fseek(this->m_inputFile, offset, SEEK_SET);
   }
+  static void TimeToString(time_t time, char * buffer, uint32_t length);
 };
 
 class DataSource

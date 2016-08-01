@@ -89,6 +89,20 @@ time_t DataReader::StringToTime(char * timeBuffer, uint32_t length)
   return time;
 }
 
+void DataReader::TimeToString(time_t time, char * buffer, uint32_t length)
+{
+  const char timeformat[] = "%Y%m%d-%T";
+  struct tm * timeStruct = localtime(&time);
+  if (timeStruct == nullptr) {
+    perror("localtime");
+    exit(1);
+  }
+  if (strftime(buffer, length, timeformat, timeStruct) == 0) {
+    fprintf(stderr, "strftime returned 0");
+    exit(1);
+  }
+}
+
 int DataReader::GetNext(Buffer * & buffer)
 {
   size_t len = 1024;
