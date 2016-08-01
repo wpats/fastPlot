@@ -2,6 +2,9 @@
 #  Fast plotter adapted from QCustomPlot Plot Examples
 #
 
+# This doesn't work. Both the generated Makefiles don't build.
+# CONFIG = debug_and_release
+
 QT       += core gui
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
